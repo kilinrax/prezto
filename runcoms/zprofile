@@ -5,6 +5,11 @@
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
 
+# NOTE this file is loaded in lieu of .profile
+#      so we want to load .profile first and
+#      override it if necessary
+emulate sh -c '. ~/.profile'
+
 #
 # Browser
 #
@@ -14,18 +19,18 @@ if [[ -z "$BROWSER" && "$OSTYPE" == darwin* ]]; then
 fi
 
 #
-# Editors
+# Editors - XXX moved to .profile
 #
 
-if [[ -z "$EDITOR" ]]; then
-  export EDITOR='nano'
-fi
-if [[ -z "$VISUAL" ]]; then
-  export VISUAL='nano'
-fi
-if [[ -z "$PAGER" ]]; then
-  export PAGER='less'
-fi
+#if [[ -z "$EDITOR" ]]; then
+#  export EDITOR='vi'
+#fi
+#if [[ -z "$VISUAL" ]]; then
+#  export VISUAL='vim'
+#fi
+#if [[ -z "$PAGER" ]]; then
+#  export PAGER='less'
+#fi
 
 #
 # Language

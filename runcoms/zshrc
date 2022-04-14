@@ -4,6 +4,20 @@
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
 #
+#
+# fancy prompt
+autoload -U colors && colors
+local reset bold white gray blue green red yellow
+
+reset="%{$reset_color%}"
+bold="%{$fg_bold[white]%}"
+white="%{$fg[white]%}"
+gray="%{$fg_bold[grey]%}" # "%{$fg_bold[black]%}"
+blue="%{$fg_bold[blue]%}"
+green="%{$fg[green]%}"
+red="%{$fg[red]%}"
+yellow="%{$fg[yellow]%}"
+PROMPT="$blue%n$reset@$bold%m$reset:$gray%~$reset$ "
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
@@ -11,3 +25,24 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # Customize to your needs...
+
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=4000
+SAVEHIST=12000
+setopt appendhistory autocd extendedglob notify
+bindkey -v
+# End of lines configured by zsh-newuser-install
+# The following lines were added by compinstall
+zstyle :compinstall filename "${ZDOTDIR:-$HOME}/.zshrc"
+
+autoload -Uz compinit
+compinit -u # XXX -u to avoid completion being disabled on sudo -s,
+            #     because root doesn't own ~/.zprezto
+# End of lines added by compinstall
+
+# syntax highlighting
+source "${ZDOTDIR:-$HOME}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# pattern match renaming!
+autoload -U zmv
