@@ -86,6 +86,10 @@ function prompt_kilinrax_setup {
 
   # Load required functions.
   autoload -Uz add-zsh-hook
+  autoload -Uz async && async
+
+  # Tell prezto we can manage this prompt
+  zstyle ':prezto:module:prompt' managed 'yes'
 
   # Add hook for calling git-info before each command.
   add-zsh-hook precmd prompt_kilinrax_precmd
