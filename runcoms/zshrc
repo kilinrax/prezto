@@ -41,8 +41,5 @@ compinit -u # XXX -u to avoid completion being disabled on sudo -s,
             #     because root doesn't own ~/.zprezto
 # End of lines added by compinstall
 
-# syntax highlighting
-source "${ZDOTDIR:-$HOME}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-
 # pattern match renaming!
 autoload -U zmv
