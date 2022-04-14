@@ -1,0 +1,128 @@
+#
+# A theme based on Sorin's with (subjectively) more congruent color choices
+#
+
+# Load dependencies.
+pmodload 'helper'
+
+function prompt_kilinrax_pwd {
+  local pwd="${PWD/#$HOME/~}"
+
+  if [[ "$pwd" == (#m)[/~] ]]; then
+    _prompt_kilinrax_pwd="$MATCH"
+    unset MATCH
+  else
+    _prompt_kilinrax_pwd="${${${(@j:/:M)${(@s:/:)pwd}##.#?}:h}%/}/${pwd:t}"
+  fi
+}
+
+BOLD=%{$'\033[1m'%}
+FAINT=%{$'\033[2m'%}
+NORMAL=%{$'\033[22m'%}
+prompt_line=0
+function prompt_kilinrax_userhost {
+  [[ -z "$_prompt_kilinrax_host" ]] && prompt_kilinrax_userhost_setup
+
+  prompt_line=$(( $prompt_line + 1 ))
+  if [[ "$prompt_line" == "1" ]]; then
+    _prompt_kilinrax_host=$_prompt_kilinrax_host_full
+    _prompt_kilinrax_user="$BOLD$USER$NORMAL"
+  else
+    _prompt_kilinrax_host=$_prompt_kilinrax_host_short
+    _prompt_kilinrax_user="$BOLD${(M)USER#?}$NORMAL…$BOLD${(M)USER%?}$NORMAL"
+  fi
+}
+
+# wire reset to set prompt_line back to 0
+RESET=$(which reset)
+function reset {
+  prompt_line=0
+  $RESET
+}
+
+# This can be determined once
+function prompt_kilinrax_userhost_setup {
+  local fqd_host="$BOLD$(hostname -f)$NORMAL"
+  local host="$(hostname)"
+  local short_host="$BOLD${(M)host#?}$NORMAL…$BOLD${(M)host%?}$NORMAL"
+  local long_host="$BOLD${host}$NORMAL"
+  # 3 cases:
+  # - home machine, neutral colour, shortened
+  # - VM, cyan, shortened
+  # - remote machine, yellow, long
+  if [[ "$(facter virtual)" == 'physical' && ! -z "$SSH_CLIENT" ]]; then
+    _prompt_kilinrax_host_short="%F{yellow}$long_host%f"
+    _prompt_kilinrax_host_full="%F{yellow}$fqd_host%f"
+  else
+    if [[ "$(facter virtual)" != 'physical' ]]; then
+      _prompt_kilinrax_host_short="%F{green}$short_host%f"
+      _prompt_kilinrax_host_full="%F{green}$long_host%f"
+    else
+      _prompt_kilinrax_host_short="$short_host"
+      _prompt_kilinrax_host_full="$long_host"
+    fi
+  fi
+}
+
+function prompt_kilinrax_precmd {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+
+  # Format PWD.
+  prompt_kilinrax_pwd
+  # Format user@host
+  prompt_kilinrax_userhost
+
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git-info
+  fi
+}
+
+function prompt_kilinrax_setup {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+  prompt_opts=(cr percent subst)
+
+  # Load required functions.
+  autoload -Uz add-zsh-hook
+
+  # Add hook for calling git-info before each command.
+  add-zsh-hook precmd prompt_kilinrax_precmd
+
+  # Set editor-info parameters.
+  zstyle ':prezto:module:editor:info:completing' format '%B%F{red}...%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{blue}❯%F{cyan}❯%F{green}❯%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{red}♺%f'
+  zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{green}❮%F{cyan}❮%F{blue}❮%f%b'
+
+  # Set git-info parameters.
+  zstyle ':prezto:module:git:info' verbose 'yes'
+  zstyle ':prezto:module:git:info:action' format ':%%B%F{yellow}%s%f%%b'
+  zstyle ':prezto:module:git:info:added' format ' %%B%F{green}✚%f%%b'
+  zstyle ':prezto:module:git:info:ahead' format ' %%B%F{yellow}⬆%f%%b'
+  zstyle ':prezto:module:git:info:behind' format ' %%B%F{yellow}⬇%f%%b'
+  zstyle ':prezto:module:git:info:branch' format ':%F{green}%b%f'
+  zstyle ':prezto:module:git:info:commit' format ':%F{green}%.7c%f'
+  zstyle ':prezto:module:git:info:deleted' format ' %%B%F{red}✖%f%%b'
+  zstyle ':prezto:module:git:info:modified' format ' %%B%F{blue}✱%f%%b'
+  zstyle ':prezto:module:git:info:position' format ':%F{red}%p%f'
+  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{magenta}➜%f%%b'
+  zstyle ':prezto:module:git:info:stashed' format ' %%B%F{cyan}✭%f%%b'
+  zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{yellow}═%f%%b'
+  zstyle ':prezto:module:git:info:untracked' format ' %%B%F{white}◼%f%%b'
+  zstyle ':prezto:module:git:info:keys' format \
+    'prompt' ' %F{blue}git%f$(coalesce "%b" "%p" "%c")%s' \
+    'rprompt' '%A%B%S%a%d%m%r%U%u'
+
+  GREY=%{$'\033[38;5;8m'%}
+  BLUE=%{$'\033[38;5;12m'%}
+  RED=%{$'\033[38;5;9m'%}
+  # Define prompts.
+  PROMPT='$prompt_line.%(!.$RED.$BLUE)${_prompt_kilinrax_user}%f@${_prompt_kilinrax_host}:$GREY${_prompt_kilinrax_pwd}%f${git_info:+${(e)git_info[prompt]}}${editor_info[keymap]} '
+  RPROMPT='${editor_info[overwrite]}%(?:: %F{red}⏎%f)${VIM:+" %B%F{green}V%f%b"}${git_info[rprompt]}'
+  SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
+}
+
+prompt_kilinrax_setup "$@"
+
