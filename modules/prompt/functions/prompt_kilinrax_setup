@@ -50,11 +50,12 @@ function prompt_kilinrax_userhost_setup {
   # - home machine, neutral colour, shortened
   # - VM, cyan, shortened
   # - remote machine, yellow, long
-  if [[ "$(facter --no-ruby virtual)" == 'physical' && ! -z "$SSH_CLIENT" ]]; then
+  if [[ -n "$SSH_CLIENT" || "$(ps -o comm= -p $PPID)" = 'sshd' ]]; then
     _prompt_kilinrax_host_short="%F{yellow}$long_host%f"
     _prompt_kilinrax_host_full="%F{yellow}$fqd_host%f"
   else
-    if [[ "$(facter --no-ruby virtual)" != 'physical' ]]; then
+    if [[ -n "$(which systemd-detect-virt)" \
+          && "$(systemd-detect-virt)" != 'none' ]]; then
       _prompt_kilinrax_host_short="%F{green}$short_host%f"
       _prompt_kilinrax_host_full="%F{green}$long_host%f"
     else
